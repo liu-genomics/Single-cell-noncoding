@@ -1,0 +1,20 @@
+---
+output:
+  html_document:
+    toc: true
+---
+
+<h1 style="color:grey;font-family:arial; position:relative; top:15px;text-align:center;" >Single-cell-noncoding<img src="website_materials/research_website_logo.png"  style="float:right;width:200px;height:150px;"></h1>
+<br>
+
+***
+
+
+
+<br>
+
+# 1. Preliminary studies
+## 1.1 Power estimation
+### 1.1.1 Use single cell data from Alan to estimate the dispersion parameter, which is then used in simulating RNA-Seq reads.
++ Assume 40 loci need to be investigated, effect size from 1.25, 1.5, 1.75, to 2. Reads number in the control condition is 5 or 10. [link](analysis/180306_power_calculation.html)
+
