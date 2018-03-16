@@ -4,6 +4,7 @@ output: html_document
 ---
 
 ```{r}
+knitr::opts_chunk$set(comment = NA, echo=FALSE, message = FALSE, warnings = FALSE)
 library(data.table)
 library(MASS)
 library(ggplot2)
@@ -13,7 +14,7 @@ library(ggplot2)
 reads <- fread("../data/reads.293FTDR_S1_R1_001.fastq_bq10_star_corrected.umi.dge.txt", header = TRUE, sep = "\t", stringsAsFactors = FALSE)
 ```
 
-```{r}
+```{r, warning=FALSE, error=FALSE, message=FALSE}
 total_reads_per_sample <- apply(as.matrix(reads[,-1]),2, sum)
 hist(total_reads_per_sample,main = "Distribution of reads number across samples")
 total_reads_per_gene_across_samples <- apply(as.matrix(reads[,-1]),1, mean)
@@ -27,7 +28,7 @@ genes <- reads[[1]]
 
 
 Need to come up a function to random sample 20000 reads for each cell with more than 20000 reads. 
-```{r}
+```{r, warning=FALSE, error=FALSE, message=FALSE}
 # Notice, the theta estimation fails for some genes, and this function will record the estimate as NA in the output
 random_sample_for_one_sample <- function(vector, n, genes){
   # [vector] is a vector with read counts per gene
@@ -64,7 +65,7 @@ dispersion_calculation <- function(target_gene, count_matrix, genes){
 }
 ```
 
-```{r, cache = TRUE, dependson=random_sample_for_one_sample, dependson=dispersion_calculation, dependson=reads_gt20000}
+```{r, cache = TRUE, dependson=random_sample_for_one_sample, dependson=dispersion_calculation, dependson=reads_gt20000,warning=FALSE, error=FALSE, message=FALSE}
 
 #sample 20000 reads from each sample
 set.seed(345)
@@ -115,7 +116,7 @@ summary(mapply(dispersion_calculation, genes_below1, MoreArgs = list(count_matri
 
 Simulation will be performed assume thare are 50K reads for each cell. 
 
-```{r}
+```{r,eval=FALSE}
 
 test <- rnbinom(1000,mu = 30, size = 1.2)
 test <- data.frame(outcome = test)
@@ -125,7 +126,7 @@ summary(m1)
 ```
 
 
-```{r}
+```{r, warning=FALSE, error=FALSE, message=FALSE}
 generate_single_cell_data <- function(sample_size = 200, effect_size = 2, reads = 10, theta = 10, simulation_rounds = 100, BF.correction = 40){
   #[sample_size] is the number of cells in treatment group or control group
   # [effect size] is the effect of treatment on RNA expression in fold of increase
@@ -156,12 +157,12 @@ generate_single_cell_data <- function(sample_size = 200, effect_size = 2, reads 
 
 # 10 reads on average in control
 
-```{r}
-sample_size_gradient <- c(10, 50, 150, 200)
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+sample_size_gradient <- c(10, 50, 150, 200, 300, 400, 500)
 effect_size_gradient <- c(1.25, 1.5, 1.75, 2)
-report_for_10_reads <- data.frame(sample_size = rep(sample_size_gradient, 4), effect_size = rep(effect_size_gradient, each = 4), power = 0)
+report_for_10_reads <- data.frame(sample_size = rep(sample_size_gradient, 4), effect_size = rep(effect_size_gradient, each = 7), power = 0)
 for(i in 1:length(report_for_10_reads[,1])){
-  report_for_10_reads[i,]$power <- generate_single_cell_data(sample_size = report_for_10_reads[i,]$sample_size, effect_size = report_for_10_reads[i,]$effect_size, reads = 10, theta = 10, simulation_rounds = 100, BF.correction = 40)
+  report_for_10_reads[i,]$power <- generate_single_cell_data(sample_size = report_for_10_reads[i,]$sample_size, effect_size = report_for_10_reads[i,]$effect_size, reads = 10, theta = 10, simulation_rounds = 100, BF.correction = 200)
 }
 
 report_for_10_reads$effect_size <- as.factor(report_for_10_reads$effect_size)
@@ -170,7 +171,7 @@ levels(report_for_10_reads$effect_size) <- c("1.25", "1.5", "1.75", "2")
 ```
 
 
-```{r}
+```{r, warning=FALSE, error=FALSE, message=FALSE}
 p <- ggplot(data = report_for_10_reads, aes(x = sample_size, y = power, group = effect_size))
 p <- p + geom_line(aes(linetype = effect_size, color = effect_size))+ geom_point(aes(color = effect_size)) + theme(legend.position="top")
 p
@@ -179,10 +180,12 @@ p
 # 5 reads on average in control
 
 
-```{r}
-report_for_10_reads <- data.frame(sample_size = rep(sample_size_gradient, 4), effect_size = rep(effect_size_gradient, each = 4), power = 0)
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+sample_size_gradient <- c(10, 50, 150, 200, 300, 400, 500)
+effect_size_gradient <- c(1.25, 1.5, 1.75, 2)
+report_for_10_reads <- data.frame(sample_size = rep(sample_size_gradient, 4), effect_size = rep(effect_size_gradient, each = 7), power = 0)
 for(i in 1:length(report_for_10_reads[,1])){
-  report_for_10_reads[i,]$power <- generate_single_cell_data(sample_size = report_for_10_reads[i,]$sample_size, effect_size = report_for_10_reads[i,]$effect_size, reads = 5, theta = 10, simulation_rounds = 100, BF.correction = 40)
+  report_for_10_reads[i,]$power <- generate_single_cell_data(sample_size = report_for_10_reads[i,]$sample_size, effect_size = report_for_10_reads[i,]$effect_size, reads = 5, theta = 10, simulation_rounds = 100, BF.correction = 200)
 }
 
 report_for_10_reads$effect_size <- as.factor(report_for_10_reads$effect_size)
@@ -197,24 +200,3 @@ p <- p + geom_line(aes(linetype = effect_size, color = effect_size))+ geom_point
 p
 ```
 
-
-# 1 reads on average in control
-
-
-```{r, eval=FALSE}
-report_for_10_reads <- data.frame(sample_size = rep(sample_size_gradient, 4), effect_size = rep(effect_size_gradient, each = 4), power = 0)
-for(i in 1:length(report_for_10_reads[,1])){
-  report_for_10_reads[i,]$power <- generate_single_cell_data(sample_size = report_for_10_reads[i,]$sample_size, effect_size = report_for_10_reads[i,]$effect_size, reads = 1, theta = 10, simulation_rounds = 100, BF.correction = 40)
-}
-
-report_for_10_reads$effect_size <- as.factor(report_for_10_reads$effect_size)
-levels(report_for_10_reads$effect_size) <- c("1.25", "1.5", "1.75", "2")
-
-```
-
-
-```{r, eval=FALSE}
-p <- ggplot(data = report_for_10_reads, aes(x = sample_size, y = power, group = effect_size))
-p <- p + geom_line(aes(linetype = effect_size, color = effect_size))+ geom_point(aes(color = effect_size)) + theme(legend.position="top")
-p
-```
